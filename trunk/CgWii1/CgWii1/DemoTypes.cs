@@ -12,7 +12,7 @@ namespace CgWii1
         PointIn3D,
         SensorBarIn3D,
         SensorBarIn3DWithSize,
-        WiiRelativeMotePositions,
+        WiiMoteRelativePositions,
         Draw3D
     }
 }
