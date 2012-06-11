@@ -17,6 +17,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input.Touch;
 #endregion
 
+using CgWii1;
+
 namespace GameStateManagement
 {
     /// <summary>
@@ -93,6 +95,8 @@ namespace GameStateManagement
             // we must set EnabledGestures before we can query for them, but
             // we don't assume the game wants to read them.
             TouchPanel.EnabledGestures = GestureType.None;
+
+            Game.Services.AddService(typeof(IWiiMotesService), new WiiMotesServiceImpl());
         }
 
 
@@ -102,6 +106,12 @@ namespace GameStateManagement
         public override void Initialize()
         {
             base.Initialize();
+
+            //Initialize the Wiimote service
+            IWiiMotesService svc = Game.Services.GetService(typeof(IWiiMotesService)) as IWiiMotesService;
+
+            if (svc != null)
+                svc.Initialize();
 
             isInitialized = true;
         }
