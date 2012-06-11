@@ -12,6 +12,8 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input.Touch;
 using System.IO;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 #endregion
 
 namespace GameStateManagement
@@ -208,6 +210,8 @@ namespace GameStateManagement
         GestureType enabledGestures = GestureType.None;
 
 
+        public ContentManager Content { get; private set; }
+        public GraphicsDevice GraphicsDevice { get; private set; }
         #endregion
 
         #region Initialization
@@ -216,7 +220,11 @@ namespace GameStateManagement
         /// <summary>
         /// Load graphics content for the screen.
         /// </summary>
-        public virtual void LoadContent() { }
+        public virtual void LoadContent() 
+        {
+            Content = ScreenManager.Game.Content;
+            GraphicsDevice = ScreenManager.Game.GraphicsDevice;
+        }
 
 
         /// <summary>
