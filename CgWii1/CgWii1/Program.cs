@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
 namespace CgWii1
 {
@@ -9,6 +11,11 @@ namespace CgWii1
         /// The main entry point for the application.
         /// </summary>
         static void Main(string[] args)
+        {
+            RunGame();
+        }
+
+        private static void RunGame()
         {
             try
             {
@@ -26,7 +33,6 @@ namespace CgWii1
                 }
             }
         }
-
     }
 #endif
 }
