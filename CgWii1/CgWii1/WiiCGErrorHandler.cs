@@ -15,10 +15,13 @@ namespace CgWii1
         SpriteBatch spriteBatch;
         SpriteFont ErrorFont;
 
+        KeyboardState oldState;
+
         public WiiCGErrorHandler()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            oldState = Keyboard.GetState();
         }
 
         /// 
@@ -67,8 +70,11 @@ namespace CgWii1
         protected override void Update(GameTime gameTime)
         {
             // Allows the game to exit
+
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
+            {
                 this.Exit();
+            }
 
             //Change warning color every 100msec
             if (gameTime.TotalGameTime.TotalMilliseconds- lastUpdate > 100)
@@ -77,10 +83,25 @@ namespace CgWii1
                 lastUpdate = gameTime.TotalGameTime.TotalMilliseconds;
             }
 
+            UpdateInput();
 
             // TODO: Add your update logic here
 
             base.Update(gameTime);
+        }
+
+        private void UpdateInput()
+        {
+            KeyboardState newState = Keyboard.GetState();
+
+            if (oldState.IsKeyDown(Keys.Space) && !newState.IsKeyDown(Keys.Space))
+            {
+                oldState = newState;
+                this.Exit();
+            }
+
+            // Update saved state.
+            oldState = newState;
         }
 
         /// 
@@ -95,6 +116,9 @@ namespace CgWii1
             spriteBatch.Begin();
             spriteBatch.DrawString(ErrorFont, "An Error occured in your CGWii, the error is as follows :", Vector2.Zero, Color.Yellow);
             spriteBatch.DrawString(ErrorFont, ErrorText, new Vector2(0, 40), warningColor);
+
+            spriteBatch.DrawString(ErrorFont, "Press escpae/space go back to main menu", new Vector2(0, 120), Color.Yellow);
+
             spriteBatch.End();
             base.Draw(gameTime);
         }

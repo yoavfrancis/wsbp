@@ -86,7 +86,7 @@ namespace CgWii1
             int index = 1;
             try
             {
-                wc.FindAllWiimotes();
+                //wc.FindAllWiimotes();
             }
             catch (WiimoteNotFoundException ex)
             {
@@ -153,6 +153,7 @@ namespace CgWii1
             readingTexture = Content.Load<Texture2D>("reading");
             promptFont = Content.Load<SpriteFont>("StatsFont");
             sensorBarModel = Content.Load<Model>("sensorbar"); //LoadModel("sensorbar");
+
             SetUpCamera();
 
             SetUpWallsVerticesEx();

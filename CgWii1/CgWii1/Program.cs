@@ -12,7 +12,18 @@ namespace CgWii1
         /// </summary>
         static void Main(string[] args)
         {
-            RunGame();
+
+            RunWsbp();
+
+            //RunGame();
+        }
+
+        private static void RunWsbp()
+        {
+            using (WsbpDemo demo = new WsbpDemo())
+            {
+                demo.Run();
+            }
         }
 
         private static void RunGame()
