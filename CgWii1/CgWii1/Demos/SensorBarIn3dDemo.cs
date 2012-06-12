@@ -7,61 +7,51 @@ using CgWii1.Screens;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using WiimoteLib;
+using System.Diagnostics;
 
 namespace CgWii1.Demos
 {
     public class SensorBarIn3dDemo : PointIn3dDemo
     {
         #region Fields
-        //GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
-        SpriteFont promptFont;
-
-        //Drawing effects HSLS
-        private Effect effect;
-
-        //View/projection
-        private Matrix viewMatrix;
-        private Matrix projectionMatrix;
-
-        //Wiimote camera resolution.
-        private const int width = 1024;
-        private const int height = 768;
-
-        private Texture2D tileTexture;
-        private Texture2D readingTexture;
-
-        //Model and point of the calculated 3D point
 
         Model sensorBarModel;
-        Vector3 modelPosition = new Vector3(0f, 0.0f, -0.0f);
+        Vector3 modelPosition = new Vector3(0f,0.0f, -0.0f);
         float curModelRoll = 0.0f;
-        float curModelYaw = -45.0f;
-        Quaternion modelRotation = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-45.0f), 0, 0.0f);
-        private Vector3 cameraPosition = new Vector3(5, 5, -5);
+        float curModelYaw = 0.0f;
+        Quaternion modelRotation = Quaternion.CreateFromYawPitchRoll(-MathHelper.PiOver4, 0, 0.0f);
 
-        private VertexBuffer wallVerticesBuffer;
         #endregion
 
-        #region Overrides
+        public SensorBarIn3dDemo()
+        {
+            Draw3dPoint = false;
+        }
+
+        /// <summary>
+        /// LoadContent will be called once per game and is the place to load
+        /// all of your content.
+        /// </summary>
         public override void LoadContent()
         {
             base.LoadContent();
 
-            ScreenManager.Game.Window.Title = "Sensor Bar in 3D Spaces";
+            ScreenManager.Game.Window.Title = "3D Point with 2 perpendicular wiimotes";
+            sensorBarModel = Content.Load<Model>("sensorbar");
+        }
 
-            // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
+        #region Load Content Methods
 
-            effect = Content.Load<Effect>("effects");
+        #endregion
 
-            tileTexture = Content.Load<Texture2D>("WallTile");
-            readingTexture = Content.Load<Texture2D>("reading");
-            promptFont = Content.Load<SpriteFont>("StatsFont");
-            sensorBarModel = Content.Load<Model>("sensorbar"); //LoadModel("sensorbar");
-            SetUpCamera();
-
-            SetUpWallsVerticesEx();
+        /// <summary>
+        /// UnloadContent will be called once per game and is the place to unload
+        /// all content.
+        /// </summary>
+        public override void UnloadContent()
+        {
+            // TODO: Unload any non ContentManager content here
         }
 
         /// <summary>
@@ -75,41 +65,68 @@ namespace CgWii1.Demos
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                 ExitScreen();
 
-            // TODO: Add your update logic here
-            KeyboardState keyState = Keyboard.GetState();
-            if (keyState.IsKeyDown(Keys.PageUp))
-            {
-                curModelYaw += 1f;
-                curModelRoll = 0.0f;
+            #region Update the Model Position
 
-            }
-            else if (keyState.IsKeyDown(Keys.PageDown))
+            float offset = 0.5f * projectionPointSize;
+
+            float x = wiiService.AvgReadingWiiMote1.X - offset;
+            float y = wiiService.AvgReadingWiiMote1.Y - offset;
+            float z = width - wiiService.AvgReadingWiiMote2.X - offset;
+
+            Vector3 pos = new Vector3(x / 512, y / 384, -z / 512);
+            modelPosition = pos; 
+            #endregion            
+
+            #region Update the model's orientation
+
+            //Get the "most extreme" points from each remote
+            if (wiiService.WiiMote1 != null)
             {
-                curModelYaw += -1f;
-                curModelRoll = 0.0f;
-            }
-            else if (keyState.IsKeyDown(Keys.Left))
-            {
-                curModelYaw += 0.0f;
-                curModelRoll = 1f;
-            }
-            else if (keyState.IsKeyDown(Keys.Right))
-            {
-                curModelYaw += 0.0f;
-                curModelRoll = -1f;
-            }
-            else
-            {
-                curModelYaw += 0f;
-                curModelRoll = 0.0f;
+                var foundSensors = wiiService.WiiMote1.WiimoteState.IRState.IRSensors.Where(r => r.Found);
+
+                if (foundSensors.Count() == 2)
+                {
+                    var r1Min = foundSensors.First();
+                    var r1Max = foundSensors.Last();
+
+                    //We have the data for "roll"
+                    Vector2 relPos = new Vector2(r1Max.RawPosition.X - r1Min.RawPosition.X, r1Max.RawPosition.Y - r1Min.RawPosition.Y);
+
+                    curModelRoll = (float)Math.Atan2(relPos.Y, relPos.X);
+                    //Debug.WriteLine(MathHelper.ToDegrees(curModelRoll));
+                }
             }
 
-            modelRotation *= Quaternion.CreateFromYawPitchRoll(0, 0f, MathHelper.ToRadians(curModelRoll));
+            if (wiiService.WiiMote2 != null)
+            {
+                var foundSensors = wiiService.WiiMote2.WiimoteState.IRState.IRSensors.Where(r => r.Found);
+                if (foundSensors.Count() == 2)
+                {
+                    var r2Min = foundSensors.First();
+                    var r2Max = foundSensors.Last();
 
 
-            //Quaternion.Normalize(ref modelRotation, out modelRotation);
+                    Vector2 relPos = new Vector2(r2Max.RawPosition.X - r2Min.RawPosition.X, r2Max.RawPosition.Y - r2Min.RawPosition.Y);
+
+                    curModelYaw = (float)Math.Atan2(relPos.Y, relPos.X);
+                    //Debug.WriteLine(MathHelper.ToDegrees(curModelYaw));
+                }
+            }
+
+            //Update roll
+
+            //Update Pitch
+
+            modelRotation = Quaternion.CreateFromYawPitchRoll(-MathHelper.PiOver4, 0f, curModelRoll);
+            #endregion
 
             base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
+        }
+
+        public override void HandleInput(GameStateManagement.InputState input)
+        {
+            base.HandleInput(input);
+            angle = 0;
         }
 
         /// <summary>
@@ -118,25 +135,13 @@ namespace CgWii1.Demos
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         public override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.DarkSlateBlue, 1.0f, 0);
-
-            RasterizerState rs = new RasterizerState();
-            rs.CullMode = CullMode.None;
-            GraphicsDevice.RasterizerState = rs;
-
-
-            // TODO: Add your drawing code here
-            DrawWalls();
-            DrawReadings();
-            DrawRemoteStats(wiiService.WiiMote1);
-            DrawRemoteStats(wiiService.WiiMote2);
-            DrawLocationStats();
-            DrawModel();
-
             base.Draw(gameTime);
+            
+            DrawModel();
         }
 
         #region Draw Methods
+
 
         private void DrawModel()
         {
@@ -153,17 +158,10 @@ namespace CgWii1.Demos
                         BasicEffect localEffect = effect as BasicEffect;
                         localEffect.EnableDefaultLighting();
 
-                        //float x = modelPosition.X;
-                        //float y = modelPosition.Y;
-                        //float z = modelPosition.Z;
-
-                        //float newX = (float)(x * Math.Cos(angle) + z * Math.Sin(angle));
-                        //float newZ =(float)(-x * Math.Sin(angle) + z * Math.Cos(angle));
-
                         localEffect.World = transforms[mesh.ParentBone.Index] *
                                             Matrix.CreateScale(0.15f) *
                                             Matrix.CreateFromQuaternion(modelRotation) * //Roll around object self midpoint.
-                                            Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(curModelYaw), 0, 0) * //Yaw around world's Y axis
+                                            Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(curModelYaw), 0,0) * //Yaw around world's Y axis                                            
                                             Matrix.CreateTranslation(modelPosition);
 
                         localEffect.View = Matrix.CreateLookAt(cameraPosition,
@@ -180,83 +178,35 @@ namespace CgWii1.Demos
             }
         }
 
-
-
-        #endregion
-        #endregion
-
-        #region Load Content Methods
-
-        private void SetUpCamera()
+        protected override void DrawLocationStats()
         {
-            //viewMatrix = Matrix.CreateLookAt(new Vector3(0, 0, 30), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-            viewMatrix = Matrix.CreateLookAt(new Vector3(width * 1.5f, width * 1f, -2f * width), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-            projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 0.2f, 4f * width);
-        }
-        
-        private void SetUpWallsVerticesEx()
-        {
-            List<VertexPositionNormalTexture> verticesList = new List<VertexPositionNormalTexture>();
+            //if (wiiService.AvailableWiiMotes < 2)
+            //{
+            //    return;
+            //}
 
-            //Generate the "floor" - width x width matrix
+            try
+            {
+                spriteBatch.Begin();
 
-            float x = width;
-            float z = width;
-            float y = height;
+                int x = (int)wiiService.AvgReadingWiiMote1.X;
+                int y = (int)(wiiService.AvgReadingWiiMote1.Y);
+                int z = wiiService.WiiMote2 != null ? (int)(width - wiiService.AvgReadingWiiMote2.X) : 0;
 
-
-
-            //Floor (y=0)
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector2(0, 0)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, 0, -z), new Vector3(0, 1, 0), new Vector2(0, 1)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(x, 0, -z), new Vector3(0, 1, 0), new Vector2(1, 1)));
-
-
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector2(0, 0)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(x, 0, 0), new Vector3(0, 1, 0), new Vector2(0, 1)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(x, 0, -z), new Vector3(0, 1, 0), new Vector2(1, 1)));
-
-
-            //Left wall (z=0)
-
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector2(0, 0)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, y, 0), new Vector3(0, 1, 0), new Vector2(0, 1)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(x, y, 0), new Vector3(0, 1, 0), new Vector2(1, 1)));
-
-
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector2(0, 0)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(x, 0, 0), new Vector3(0, 1, 0), new Vector2(0, 1)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(x, y, 0), new Vector3(0, 1, 0), new Vector2(1, 1)));
-
-            //Right wall (x=0)
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector2(0, 0)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, 0, -z), new Vector3(0, 1, 0), new Vector2(0, 1)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, y, -z), new Vector3(0, 1, 0), new Vector2(1, 1)));
-
-
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector2(0, 0)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, y, 0), new Vector3(0, 1, 0), new Vector2(0, 1)));
-            verticesList.Add(new VertexPositionNormalTexture(new Vector3(0, y, -z), new Vector3(0, 1, 0), new Vector2(1, 1)));
-
-
-
-
-
-            wallVerticesBuffer = new VertexBuffer(GraphicsDevice, VertexPositionNormalTexture.VertexDeclaration, verticesList.Count, BufferUsage.WriteOnly);
-
-            wallVerticesBuffer.SetData<VertexPositionNormalTexture>(verticesList.ToArray());
+                string msg = String.Format("X:{0,4} , Y:{1,4}, Z:{2,4}, Roll:{3,6}, Yaw:{4,6}", x, y, z, 
+                                           MathHelper.ToDegrees(curModelRoll).ToString("0.00"),
+                                           MathHelper.ToDegrees(curModelYaw).ToString("0.00"));
+                spriteBatch.DrawString(promptFont,
+                                        msg,
+                                        new Vector2(20, GraphicsDevice.Viewport.Height - 40),
+                                        Color.Yellow);
+            }
+            finally
+            {
+                spriteBatch.End();
+            }
         }
 
-        private Model LoadModel(string assetName)
-        {
-            Model newModel = Content.Load<Model>(assetName);
-
-            foreach (ModelMesh mesh in newModel.Meshes)
-                foreach (ModelMeshPart meshPart in mesh.MeshParts)
-                    meshPart.Effect = effect.Clone();
-
-            return newModel;
-        }
         #endregion
     }
 }
