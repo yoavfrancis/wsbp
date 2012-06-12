@@ -63,7 +63,9 @@ namespace CgWii1
 
             // Activate the first screens.
             screenManager.AddScreen(new BackgroundScreen(), null);
+            //TODO: replace when running
             screenManager.AddScreen(new MainMenuScreen(), null);
+            //screenManager.AddScreen(new Demos.SensorBarIn3dDemo(), PlayerIndex.One);
         }
 
 
