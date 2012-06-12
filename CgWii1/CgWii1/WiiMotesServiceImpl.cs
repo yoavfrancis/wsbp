@@ -40,6 +40,22 @@ namespace CgWii1
         }
 
         public Exception LastException { get; private set; }
+
+        public bool WiiMote1IrFound 
+        { 
+            get 
+            {
+                return WiiMote1 != null && WiiMote1.FoundAnyIrs();
+            }
+        }
+
+        public bool WiiMote2IrFound
+        {
+            get
+            {
+                return WiiMote2 != null && WiiMote2.FoundAnyIrs();
+            }
+        }
         #endregion
 
         public void Initialize()

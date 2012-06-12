@@ -18,9 +18,9 @@ namespace CgWii1.Demos
             internal double Radius { get; set; }
         }
 
-        const int MAX_POINTS = 1000;         //Maximum number of points to draw
-        const int POINT_RADIUS = 20;        //Size of the point
-        const int POINT_KEEP_ALIVE = 1000;  //Time a point stays in the screen
+        const int MAX_POINTS = 5000;         //Maximum number of points to draw
+        const int POINT_RADIUS = 25;        //Size of the point
+        const int POINT_KEEP_ALIVE = 3000;  //Time a point stays in the screen
 
         Model pointModel;
 
@@ -41,10 +41,10 @@ namespace CgWii1.Demos
         {
             base.LoadContent();
 
-            pointModel = LoadModel("target");
+            //pointModel = LoadModel("target");
+            pointModel = Content.Load<Model>("point");
 
             ScreenManager.Game.Window.Title = "Draw Points in 3D Space";
-
         }
 
         public override void Update(GameTime gameTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
@@ -59,17 +59,20 @@ namespace CgWii1.Demos
             pointsList.RemoveAll(p => currentTime - p.CreationTime > POINT_KEEP_ALIVE);
 
             //Make sure there are no more points than allowed
-            if (pointsList.Count > MAX_POINTS)
-                return;
-
-            //Get current location
-            pointsList.Add(new DrawingPoint()
-            {
-                Location = new Vector3(wiiService.AvgReadingWiiMote1.X - POINT_RADIUS, wiiService.AvgReadingWiiMote1.Y - POINT_RADIUS, width - wiiService.AvgReadingWiiMote2.X - POINT_RADIUS),
-                CreationTime = gameTime.TotalGameTime.TotalMilliseconds,
-                Radius = POINT_RADIUS
-            });
-          
+            if (pointsList.Count < MAX_POINTS)
+            {                
+                //Check for valid readings
+                if (wiiService.WiiMote1IrFound || wiiService.WiiMote2IrFound)
+                {
+                    //Get current location
+                    pointsList.Add(new DrawingPoint()
+                    {
+                        Location = new Vector3(wiiService.AvgReadingWiiMote1.X - POINT_RADIUS, wiiService.AvgReadingWiiMote1.Y - POINT_RADIUS, width - wiiService.AvgReadingWiiMote2.X - POINT_RADIUS),
+                        CreationTime = gameTime.TotalGameTime.TotalMilliseconds,
+                        Radius = POINT_RADIUS
+                    });
+                }
+            }
             base.Update(gameTime, otherScreenHasFocus, coveredByOtherScreen);
         }
 
@@ -77,7 +80,7 @@ namespace CgWii1.Demos
         {
             base.Draw(gameTime);
 
-            DrawPoints();
+            DrawPoints(gameTime);
         }
         
         #endregion
@@ -110,25 +113,41 @@ namespace CgWii1.Demos
         }
 
 
-        private void DrawPoints()
+        private void DrawPoints(GameTime gameTime)
         {
+            double currentTime = gameTime.TotalGameTime.TotalMilliseconds;
+
             for (int i = 0; i < pointsList.Count; i++)
             {
+                float intensity = 1f - (float)(currentTime - pointsList[i].CreationTime) / POINT_KEEP_ALIVE;
                 Matrix worldMatrix = Matrix.CreateScale((float)pointsList[i].Radius) * Matrix.CreateTranslation(pointsList[i].Location);
 
                 Matrix[] targetTransforms = new Matrix[pointModel.Bones.Count];
                 pointModel.CopyAbsoluteBoneTransformsTo(targetTransforms);
                 foreach (ModelMesh modmesh in pointModel.Meshes)
                 {
-                    foreach (Effect currentEffect in modmesh.Effects)
+                    //foreach (Effect currentEffect in modmesh.Effects)
+                    //{
+                    //    currentEffect.CurrentTechnique = currentEffect.Techniques["Colored"];
+                    //    currentEffect.Parameters["xWorld"].SetValue(targetTransforms[modmesh.ParentBone.Index] * worldMatrix);
+                    //    currentEffect.Parameters["xView"].SetValue(viewMatrix);
+                    //    currentEffect.Parameters["xProjection"].SetValue(projectionMatrix);
+                    //    currentEffect.Parameters["xEnableLighting"].SetValue(true);
+                    //    currentEffect.Parameters["xLightDirection"].SetValue(lightDirection);
+                    //    currentEffect.Parameters["xAmbient"].SetValue(0.5f);
+                    //}
+
+                    foreach (BasicEffect currentEffect in modmesh.Effects)
                     {
-                        currentEffect.CurrentTechnique = currentEffect.Techniques["Colored"];
-                        currentEffect.Parameters["xWorld"].SetValue(targetTransforms[modmesh.ParentBone.Index] * worldMatrix);
-                        currentEffect.Parameters["xView"].SetValue(viewMatrix);
-                        currentEffect.Parameters["xProjection"].SetValue(projectionMatrix);
-                        currentEffect.Parameters["xEnableLighting"].SetValue(true);
-                        currentEffect.Parameters["xLightDirection"].SetValue(lightDirection);
-                        currentEffect.Parameters["xAmbient"].SetValue(0.5f);
+                        //currentEffect.CurrentTechnique = currentEffect.Techniques["Colored"];
+                        currentEffect.World = targetTransforms[modmesh.ParentBone.Index] * worldMatrix;
+                        currentEffect.View = viewMatrix;
+                        currentEffect.Projection = projectionMatrix;
+                        currentEffect.EnableDefaultLighting();
+                        currentEffect.Alpha = intensity;
+                        //    currentEffect.Parameters["xEnableLighting"].SetValue(true);
+                        //    currentEffect.Parameters["xLightDirection"].SetValue(lightDirection);
+                        //    currentEffect.Parameters["xAmbient"].SetValue(0.5f);
                     }
                     modmesh.Draw();
                 }
