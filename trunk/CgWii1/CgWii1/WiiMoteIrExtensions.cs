@@ -9,7 +9,7 @@ namespace CgWii1
 {
     public static class WiiMoteIrExtensions
     {
-        public static bool FoundAny(this Wiimote wm)
+        public static bool FoundAnyIrs(this Wiimote wm)
         {
             return wm.WiimoteState.IRState.IRSensors.Count(ir => ir.Found) > 0;
         }
