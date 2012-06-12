@@ -107,6 +107,7 @@ namespace CgWii1
                 case DemoTypes.WiiMoteRelativePositions:
                     break;
                 case DemoTypes.Draw3D:
+                    screenToLoad = new Draw3dDemo();
                     break;
                 default:
                     break;
@@ -141,8 +142,6 @@ namespace CgWii1
         {
             ScreenManager.Game.Exit();
         }
-
-
         #endregion
     }
 }
