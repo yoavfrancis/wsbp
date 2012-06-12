@@ -115,7 +115,7 @@ namespace CgWii1
             if (screenToLoad == null)
                 return;
 
-            LoadingScreen.Load(ScreenManager, false, e.PlayerIndex, screenToLoad);
+            LoadingScreen.Load(ScreenManager, true, e.PlayerIndex, screenToLoad);
         }
 
         /// <summary>
