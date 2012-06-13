@@ -40,8 +40,9 @@ namespace CgWii1
             Content.RootDirectory = "Content";
 
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 1440;
-            graphics.PreferredBackBufferHeight = 900;
+            graphics.PreferredBackBufferWidth = 940;
+            graphics.PreferredBackBufferHeight = 735;
+            //graphics.IsFullScreen = true;
             graphics.ApplyChanges();
 
             // Create the screen manager component.

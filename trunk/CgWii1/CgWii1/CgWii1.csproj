@@ -76,6 +76,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Demos\Draw3dDemo.cs" />
     <Compile Include="Demos\SensorBarIn3dDemo.cs" />
     <Compile Include="DemoTypes.cs" />
     <Compile Include="Game2.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="Demos\PointIn3dDemo.cs" />
     <Compile Include="Screens\ReInitializeWiiScreen.cs" />
     <Compile Include="WiiCGErrorHandler.cs" />
+    <Compile Include="WiiMoteIrExtensions.cs" />
     <Compile Include="WiiMotesServiceImpl.cs" />
     <Compile Include="WsbpDemo.cs" />
   </ItemGroup>
