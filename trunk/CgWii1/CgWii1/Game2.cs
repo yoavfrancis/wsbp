@@ -46,8 +46,8 @@ namespace CgWii1
         Model sensorBarModel;
         Vector3 modelPosition = new Vector3(0f,0.0f, -0.0f);
         float curModelRoll = 0.0f;
-        float curModelYaw = -45.0f;
-        Quaternion modelRotation = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-45.0f), 0, 0.0f);
+        float curModelYaw = 45.0f;
+        Quaternion modelRotation = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(45.0f), 0, 0.0f);
         private Vector3 cameraPosition = new Vector3(5, 5, -5);
 
         private VertexBuffer wallVerticesBuffer;
@@ -86,7 +86,7 @@ namespace CgWii1
             int index = 1;
             try
             {
-                //wc.FindAllWiimotes();
+                wc.FindAllWiimotes();
             }
             catch (WiimoteNotFoundException ex)
             {
@@ -153,7 +153,6 @@ namespace CgWii1
             readingTexture = Content.Load<Texture2D>("reading");
             promptFont = Content.Load<SpriteFont>("StatsFont");
             sensorBarModel = Content.Load<Model>("sensorbar"); //LoadModel("sensorbar");
-
             SetUpCamera();
 
             SetUpWallsVerticesEx();
@@ -287,7 +286,7 @@ namespace CgWii1
             }
 
 
-            modelRotation *= Quaternion.CreateFromYawPitchRoll(0, 0f, MathHelper.ToRadians(curModelRoll));
+            modelRotation *= Quaternion.CreateFromYawPitchRoll(curModelYaw, 0f, curModelRoll);
 
 
             //Quaternion.Normalize(ref modelRotation, out modelRotation);
