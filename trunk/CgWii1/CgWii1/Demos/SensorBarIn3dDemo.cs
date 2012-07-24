@@ -128,7 +128,7 @@ namespace CgWii1.Demos
                     float dx2 = r2Max.RawPosition.X - r2Min.RawPosition.X;
                     
                     // We have the x distance on both remotes.
-                    curModelYaw = -(float)Math.Atan2(dx2,dx1);
+                    curModelYaw = -(float)Math.Atan2(dx2, dx1);
 
                     //// Compute distances.
                     double angularFOV = MathHelper.ToRadians(41.0f) / 1024; ;
