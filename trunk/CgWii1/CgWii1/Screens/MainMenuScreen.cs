@@ -30,7 +30,7 @@ namespace CgWii1
 
             // Create our menu entries.
             DemoTypes[] demoTypes = { DemoTypes.PointIn3D, DemoTypes.SensorBarIn3D, DemoTypes.SensorBarIn3DWithSize, DemoTypes.WiiMoteRelativePositions, DemoTypes.Draw3D };
-            string[] demoNames = { "Point in 3D", "Sensor Bar in 3D", "Sensor Bar in 3D w/Size", "WiiMote Relative Position", "3D Draw" };
+            string[] demoNames = { "Point in 3D", "Sensor Bar in 3D"/*, "Sensor Bar in 3D w/Size", "WiiMote Relative Position"*/, "3D Draw" };
 
             for (int i = 0; i < demoTypes.Length; i++)
             {
